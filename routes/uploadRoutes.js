@@ -12,26 +12,27 @@ const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "./public/uploads");
   },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    const extension = path.extname(file.originalname);
-    cb(null, uniqueSuffix + extension);
-  },
+  // filename: (req, file, cb) => {
+  //   const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+  //   const extension = path.extname(file.originalname);
+  //   cb(null, uniqueSuffix + extension);
+  // },
 });
 
 const upload = multer({ storage: storage });
+
+router.route('/uploadcsv').post(
+  upload.single("file"),
+  statementController.uploadStatement
+);
 
 // login Routes
 router.post("/login", loginController.login);
 
 // statement Routes
-router.post(
-  "/upload",
-  upload.array("file"),
-  statementController.uploadStatement
-);
-router.post("/statement/:accountno", statementController.getStatement);
+router.get("/statement/:accountno", statementController.getStatement);
 router.post("/search", statementController.searchdate);
+router.patch('/statement/:statementId',statementController.updateStatementfortag)
 // router.get("/getall", statementController.getAll);
 
 // bank Routes

@@ -1,43 +1,69 @@
 const csv = require("csv-parser");
 const fs = require("fs");
+const moment = require('moment')
+const mongoose = require('mongoose')
 
 const Statement = require("../model/statement");
 
-const uploadStatement = async (req, res) => {
-  try {
-    for (const file of req.files) {
-      const results = [];
-      let bankName = req.body.bankName;
-      // bankName.toUpperCase()
+const processCSVFile = async (filePath, bankName, accountNumber) => {
+  const results = [];
+  const currentDate = moment(); // Get the current date
+  const previousMonth = currentDate.subtract(1, 'months'); // Subtract 1 month to get the previous month
 
-      fs.createReadStream(file.path)
-        .pipe(csv())
-        .on("data", (data) => {
-          let result = {};
-          if (bankName === "HDFC") {
-            const debitAmount = parseFloat(data["Debit Amount"]);
-            const creditAmount = parseFloat(data["Credit Amount"]);
+  const startTimestamp = previousMonth.startOf('month').unix()*1000; // Start of the previous month as a timestamp
+  const endTimestamp = previousMonth.endOf('month').unix()*1000;
+  const previousMonthdata = await Statement.find({
+    date: {
+      $gte: startTimestamp,
+      $lte: endTimestamp,
+    },
+  })
+
+  let stateHash  = {};
+  previousMonthdata.forEach((item) => {
+    stateHash[item.description] = item
+  })
+  return new Promise((resolve, reject) => {
+    const fileStream = fs.createReadStream(filePath)
+      .on('error', (error) => {
+        reject(error); // Handle file read errors
+      })
+      .pipe(csv())
+      .on('data',async  (data) => {
+
+        const result = {};
+          if (bankName === 'HDFC') {
+            const debitAmount = parseFloat(data["Debit Amount"] || data['DebitAmount'] );
+            const creditAmount = parseFloat(data["Credit Amount"] || data['CreditAmount']);
             const type =
               debitAmount !== 0 ? "DR" : creditAmount !== 0 ? "CR" : "";
             const transaction_amount =
               type === "DR" ? debitAmount : creditAmount;
-            let formatDate = data["Date"];
-            let newFormatDate = formatDate.split("/").join("-");
-            result.date = newFormatDate;
+            var dateObject = moment(data['Date'], 'DD-MM-YYYY');
+            var timestamp = dateObject.unix();
+            var timestampmiliseconds = timestamp*1000;
+            result.date = timestampmiliseconds;
             result.description = data["Narration"];
             result.type = type;
             result.transaction_amount = transaction_amount;
-            result.cheque_no = data["Chq/Ref Number"];
-            result.total_balance = data["Closing Balance"];
+            result.cheque_no = data["Chq/Ref Number"] || data['ChqNumber'];
+            result.total_balance = data["Closing Balance"] || data['ClosingBalance'];
             result.transaction_id = null;
             result.txn_posted_date = null;
-          } else if (bankName === "ICICI") {
-            dateFormat = data["Value Date"];
-            dateFormat = dateFormat.split("-");
-            let year = dateFormat[2].split("");
-            let yea = year[2] + year[3];
-            let newDate = dateFormat[1] + "-" + dateFormat[0] + "-" + yea;
-            result.date = newDate;
+            result.tag_name = stateHash[result.description]?.tag_name || null;
+            // if(previousMonthdata.length>0){
+            //   let test1 = previousMonthdata.find((stat) => stat.description === result.description)
+            //   if(test1){
+            //     result.tag_name = test1.tag_name
+            //   }else{
+            //     result.tag_name = null
+            //   }
+            // }    
+          } else if (bankName === 'ICICI') {
+            var dateObject = moment(data["Value Date"], 'MM-DD-YYYY');
+            var timestamp = dateObject.unix();
+            var timestampmiliseconds = timestamp*1000;
+            result.date = timestampmiliseconds;
             result.description = data["Description"];
             result.type = data["Cr/Dr"];
             result.transaction_amount = data["Transaction Amount(INR)"];
@@ -45,41 +71,61 @@ const uploadStatement = async (req, res) => {
             result.total_balance = data["Available Balance(INR)"];
             result.transaction_id = data["Transaction ID"];
             result.txn_posted_date = data["Txn Posted Date"];
+            result.tag_name = stateHash[result.description]?.tag_name || null;
+          //   if(previousMonthdata.length>0){
+          //     let test1 = previousMonthdata.find((stat) => stat.description === result.description)
+          //     if(test1){
+          //       result.tag_name = test1.tag_name
+          //     }else{
+          //       result.tag_name = null
+          //     }
+          //   }
           }
           result.bank_name = bankName;
-          result.account_number = req.body.AccountNumber;
-
+          result.account_number = accountNumber;
           results.push(result);
-        })
-        .on("end", async () => {
-          try {
-            await Statement.insertMany(results);
-            fs.unlinkSync(file.path);
-          } catch (insertError) {
-            console.error("Error inserting data:", insertError);
-          }
-        });
-    }
 
-    res.status(200).json({ message: "CSV files uploaded and data saved." });
+      })
+      .on('end', async () => {
+        try {
+          await Statement.insertMany(results); // Insert data into MongoDB
+          fs.unlinkSync(filePath); // Delete the uploaded file
+          resolve();
+        } catch (insertError) {
+          reject(insertError); // Handle MongoDB insert errors
+        }
+      });
+  });
+};
+
+const uploadStatement = async (req, res) => {
+  try {
+    const bankName = req.body.bankName;
+    const accountNumber = req.body.AccountNumber;
+    const file = req.file; // Use req.file for a single file upload
+
+    if (!file) {
+      return res.status(400).json({ message: 'No file uploaded.' });
+    }
+    try {
+      await processCSVFile(file.path, bankName, accountNumber);
+      res.status(200).json({ message: 'CSV file uploaded and data saved.' });
+    } catch (error) {
+      console.error('Error processing CSV file:', error);
+      res.status(500).json({
+        message: 'Error processing CSV file.',
+        error: error.message,
+      });
+    }
   } catch (connectionError) {
-    console.error("Error connecting to MongoDB:", connectionError);
+    console.error('Error connecting to MongoDB:', connectionError);
     res.status(400).json({
-      message: "Error uploading CSV files.",
+      message: 'Error uploading CSV file.',
       error: connectionError.message,
     });
   }
 };
 
-const getAll = async (req, res) => {
-  const data = await Statement.find({});
-  console.log(data);
-  res.status(200).json({
-    message: "fetch data successfully",
-    success: true,
-    data: data,
-  });
-};
 
 const getStatement = async (req, res) => {
   try {
@@ -88,8 +134,7 @@ const getStatement = async (req, res) => {
     const accountno = req.params.accountno;
 
     // const startIndex = (page - 1) * perPage;
-    const getStatement = await Statement.find({ account_number: accountno });
-    // console.log(getStatement3);
+    const getStatement = await Statement.find({ account_number: accountno }).populate('tag_name')
     // .limit(perPage);
     if (!getStatement) {
       return res.status(404).json({
@@ -124,4 +169,33 @@ const searchdate = async (req, res) => {
   res.status(400).json({ message: "No data found" });
 };
 
-module.exports = { uploadStatement, getAll, getStatement, searchdate };
+const updateStatementfortag = async (req,res) => {
+  try {
+    const updatedBody = req.body;
+    const statementId  = req.params.statementId;
+    const date = moment(updatedBody.date);
+    const formattedDate = date.format('DD-MM-YYYY');
+
+    console.log('Formatted Date:', formattedDate);
+    const datemil = moment(formattedDate, 'DD-MM-YYYY');
+
+    const firstDayTimestamp = datemil.clone().startOf('month').valueOf();
+
+    const lastDayTimestamp = datemil.clone().endOf('month').valueOf();
+
+    const returndata = await Statement.updateMany({
+      $and:[{description:updatedBody.description},{date:{$gte:firstDayTimestamp,$lte:lastDayTimestamp},account_number:updatedBody.account_number}]
+    },{$set:{tag_name:updatedBody.tag_name}},{upsert:true})
+    if(returndata.acknowledged == true){
+      res.status(200).json({"message":"data updated "});
+    }
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({error:error.message})
+  }
+}
+
+
+
+
+module.exports = { uploadStatement, getStatement, searchdate,updateStatementfortag };

@@ -36,12 +36,9 @@ const Tag = require("../model/tags");
 const createTag = async (req, res) => {
   try {
     const { tag_name } = req.body;
-    // const newTag = new Tag(tag_name);
-    // const savedTag = await newTag.save();
     const savedTag = await Tag.create({
       tag_name: tag_name,
     });
-    console.log("Tag created:", savedTag);
     if (!savedTag)
       return res.status(500).json({ message: "Internal server error" });
     res.status(200).json({ message: "Tag created successfully", savedTag });
@@ -54,7 +51,6 @@ const createTag = async (req, res) => {
 const getAllTags = async (req, res) => {
   try {
     const tags = await Tag.find();
-    console.log("All Tags:", tags);
     if (!tags)
       return res.status(500).json({ message: "Internal server error" });
     res.status(200).json({ message: "tags data retrive successfully", tags });

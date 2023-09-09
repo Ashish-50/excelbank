@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const StatementSchemas = new mongoose.Schema({
   date: {
-    type: String,
+    type: Number,
   },
   description: {
     type: String,
@@ -31,10 +31,10 @@ const StatementSchemas = new mongoose.Schema({
   account_number: {
     type: String,
   },
-  // tag_name:{
-  //     type:mongoose.Schema.Types.ObjectId,
-  //     default:""
-  // },
+  tag_name:{
+      type:mongoose.Schema.Types.ObjectId,
+      ref:'tag',
+  },
   is_confirm: {
     type: String,
     default: false,
