@@ -3,7 +3,7 @@ const router = express.Router();
 const statementController = require("../controllers/statementController");
 const bankController = require("../controllers/bankController");
 const accountController = require("../controllers/accountController");
-const loginController = require("../controllers/loginController");
+const userController = require("../controllers/userController");
 const tagController = require("../controllers/tagController");
 const multer = require("multer");
 const path = require("path");
@@ -12,11 +12,11 @@ const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "./public/uploads");
   },
-  // filename: (req, file, cb) => {
-  //   const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-  //   const extension = path.extname(file.originalname);
-  //   cb(null, uniqueSuffix + extension);
-  // },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const extension = path.extname(file.originalname);
+    cb(null, uniqueSuffix + extension);
+  },
 });
 
 const upload = multer({ storage: storage });
@@ -27,12 +27,14 @@ router.route('/uploadcsv').post(
 );
 
 // login Routes
-router.post("/login", loginController.login);
+router.post("/register",userController.register)
+router.post("/login", userController.login);
 
 // statement Routes
 router.get("/statement/:accountno", statementController.getStatement);
 router.post("/search", statementController.searchdate);
-router.patch('/statement/:statementId',statementController.updateStatementfortag)
+router.patch('/statement/:statementId',statementController.updateStatementfortag);
+router.get('/getAllStatments',statementController.getAllStatements)
 // router.get("/getall", statementController.getAll);
 
 // bank Routes
