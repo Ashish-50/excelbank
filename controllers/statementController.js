@@ -2,8 +2,8 @@ const csv = require("csv-parser");
 const fs = require("fs");
 const moment = require('moment')
 const mongoose = require('mongoose')
-
 const Statement = require("../model/statement");
+const { Readable } = require('stream');
 
 
 let previousMonthdata;
@@ -30,10 +30,11 @@ if(previousMonthdata){
 }
 }
 
-const processCSVFile = async (filePath,bankName,accountNumber) => {
+const processCSVFile = async (fileBuffer, bankName, accountNumber) => {
   const results = await new Promise((resolve, reject) => {
     const rows = [];
-    fs.createReadStream(filePath)
+    const stream = Readable.from(fileBuffer); // Convert Buffer to Readable stream
+    stream
       .on("error", (error) => {
         console.log(error);
         reject(error);
@@ -47,13 +48,9 @@ const processCSVFile = async (filePath,bankName,accountNumber) => {
             var timestampmiliseconds = timestamp * 1000;
             row.date = timestampmiliseconds;
           }
-          //   var timestamp = dateObject.unix();
-          //   var timestampmiliseconds = timestamp*1000;
-          // row.date = timestampmiliseconds
         }else if(row['Value Date']){
           var dateObject = moment(row["Value Date"],'MM-DD-YYYY');
           if (!dateObject.isValid()) {
-            // Attempt to reformat the date to DD-MM-YYYY
             var reformattedDate = moment(row['Date'], 'MM-DD-YYYY').format('DD-MM-YYYY');
             dateObject = moment(reformattedDate, 'DD-MM-YYYY');
           }
@@ -62,9 +59,6 @@ const processCSVFile = async (filePath,bankName,accountNumber) => {
             var timestampmiliseconds = timestamp * 1000;
             row.date = timestampmiliseconds;
           }
-          //   var timestamp = dateObject.unix();
-          //   var timestampmiliseconds = timestamp*1000;
-          // row.date = timestampmiliseconds
         }
         rows.push(row);
       })
@@ -86,7 +80,7 @@ const uploadStatement = async (req, res) => {
       return res.status(400).json({ message: 'No file uploaded.' });
     }
     try {
-     let CSVDATA = await processCSVFile(file.path, bankName, accountNumber);
+      let CSVDATA = await processCSVFile(file.buffer, bankName, accountNumber);
       let finalData = CSVDATA.map((data)=>{
         let result={}
         if(req.body.bankName == 'HDFC'){
