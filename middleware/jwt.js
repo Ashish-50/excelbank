@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 
 const generateToken = (userdata)=>{
     try {
-        const jwtSecretToken = "thisisfortestingpurpose";
+        const jwtSecretToken = process.env.JWTSECRETTOKEN;
         const expiresIn = '1d';
         const options = {
             expiresIn: expiresIn,
@@ -18,19 +18,21 @@ const generateToken = (userdata)=>{
     }
 }
 
-const verifyToken = (token) => {
+const requireSignIn = (req,res,next) => {
     try {
-        const jwtSecretToken = "thisisfortestingpurpose"
-        const verify = jwt.verify(token,jwtSecretToken);
-        if(verify){
-            return verify
+        if(req.headers.authorization){
+            const jwtSecretToken = process.env.JWTSECRETTOKEN
+            const token = req.headers.authorization;
+            const user = jwt.verify(token,jwtSecretToken);
+            req.user = user
         }else{
-            return "invalid token"
+            return "Invalid Token"
         }
+        next()
     } catch (error) {
         console.log(error);
         return error.message
     }
 }
 
-module.exports ={ generateToken, verifyToken}
+module.exports ={ generateToken, requireSignIn}

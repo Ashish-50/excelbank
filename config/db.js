@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 let connection = async () => {
   mongoose
     .connect(
-      "mongodb+srv://excellence-pardeep:excellence-pardeep@cluster0.mfk2efk.mongodb.net/excelBank"
+      process.env.MONGODB_URI,{ useNewUrlParser: true, useUnifiedTopology: true }
     )
     .then(() => {
       console.log("connected");
