@@ -1,0 +1,6 @@
+package.json
+package-lock.json
+.eslintrc.json
+.prettierrc.json
+node_modules/
+project/

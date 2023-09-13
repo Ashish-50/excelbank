@@ -1,15 +1,13 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
-let connection = async () => {
+const connection = async () => {
   mongoose
-    .connect(
-      process.env.MONGODB_URI,{ useNewUrlParser: true, useUnifiedTopology: true }
-    )
+    .connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => {
-      console.log("connected");
+      console.info('Database Connection Established');
     })
     .catch((err) => {
-      console.log(err);
+      console.error(err);
     });
 };
 

@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const StatementSchemas = new mongoose.Schema({
   date: {
@@ -31,9 +31,9 @@ const StatementSchemas = new mongoose.Schema({
   account_number: {
     type: String,
   },
-  tag_name:{
-      type:mongoose.Schema.Types.ObjectId,
-      ref:'tag',
+  tag_name: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'tag',
   },
   is_confirm: {
     type: String,
@@ -41,5 +41,5 @@ const StatementSchemas = new mongoose.Schema({
   },
 });
 
-const Statement = mongoose.model("statement", StatementSchemas);
+const Statement = mongoose.model('statement', StatementSchemas);
 module.exports = Statement;

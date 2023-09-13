@@ -1,8 +1,8 @@
-const express = require("express");
-const cors = require("cors");
-const uploadRoutes = require("./routes/uploadRoutes");
-const connection = require("./config/db");
-const dotenv = require('dotenv')
+const express = require('express');
+const cors = require('cors');
+const uploadRoutes = require('./routes/uploadRoutes');
+const connection = require('./config/db');
+const dotenv = require('dotenv');
 
 if (process.env.NODE_ENV === 'production') {
   dotenv.config({ path: '.env.production' });
@@ -14,19 +14,18 @@ if (process.env.NODE_ENV === 'production') {
 
 const app = express();
 
-app.use(cors({ origin: "*" }));
+app.use(cors({ origin: '*' }));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-app.use(express.static("public"));
+app.use(express.static('public'));
 
-app.use("/uploads", express.static(__dirname + "/public/uploads"));
+app.use('/uploads', express.static(__dirname + '/public/uploads'));
 
-
-app.use("/api", uploadRoutes);
+app.use('/api', uploadRoutes);
 
 const PORT = process.env.PORT;
 
 app.listen(PORT, () => {
   connection();
-  console.log("App is running on port " + PORT);
+  console.info('App is running on port ' + PORT);
 });

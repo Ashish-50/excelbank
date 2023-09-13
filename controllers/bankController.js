@@ -1,4 +1,4 @@
-const Bank = require("../model/bank");
+const Bank = require('../model/bank');
 
 const postbank = async (req, res) => {
   try {
@@ -10,19 +10,19 @@ const postbank = async (req, res) => {
     });
     if (!savedBank) {
       return res.status(500).json({
-        code: "Internal-Server-Error",
-        error: "Something went wrong while registering Bank detail",
+        code: 'Internal-Server-Error',
+        error: 'Something went wrong while registering Bank detail',
       });
     }
     return res.status(200).json({
-      message: "Bank detail Registered Successfully !!",
+      message: 'Bank detail Registered Successfully !!',
       Bank: savedBank,
     });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
-      code: "Internal-Server-Error",
-      error: "Something went wrong while processing your request.",
+      code: 'Internal-Server-Error',
+      error: 'Something went wrong while processing your request.',
     });
   }
 };
@@ -32,16 +32,16 @@ const getBank = async (req, res) => {
     const banks = await Bank.find({});
     if (!banks) {
       res.status(404).json({
-        message: "no bank found",
+        message: 'no bank found',
       });
     }
     res.status(200).json({
       data: banks,
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).json({
-      message: "Internal server error",
+      message: 'Internal server error',
       error: error.message,
     });
   }

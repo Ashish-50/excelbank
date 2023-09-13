@@ -1,46 +1,42 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const statementController = require("../controllers/statementController");
-const bankController = require("../controllers/bankController");
-const accountController = require("../controllers/accountController");
-const userController = require("../controllers/userController");
-const tagController = require("../controllers/tagController");
-const multer = require("multer");
-const path = require("path");
+const statementController = require('../controllers/statementController');
+const bankController = require('../controllers/bankController');
+const accountController = require('../controllers/accountController');
+const userController = require('../controllers/userController');
+const tagController = require('../controllers/tagController');
+const multer = require('multer');
 
 const storage = multer.memoryStorage();
 
 const upload = multer({ storage: storage });
 
-router.route('/uploadcsv').post(
-  upload.single("file"),
-  statementController.uploadStatement
-);
+router.route('/uploadcsv').post(upload.single('file'), statementController.uploadStatement);
 
 // login Routes
-router.post("/register",userController.register)
-router.post("/login", userController.login);
+router.post('/register', userController.register);
+router.post('/login', userController.login);
 
 // statement Routes
-router.get("/statement/:accountno", statementController.getStatement);
-router.post("/search", statementController.searchdate);
-router.patch('/statement/:statementId',statementController.updateStatementfortag);
-router.get('/getAllStatments',statementController.getAllStatements)
+router.get('/statement/:accountno', statementController.getStatement);
+router.post('/search', statementController.searchdate);
+router.patch('/statement/:statementId', statementController.updateStatementfortag);
+router.get('/getAllStatments', statementController.getAllStatements);
 // router.get("/getall", statementController.getAll);
 
 // bank Routes
-router.post("/postbank", bankController.postbank);
-router.get("/getbank", bankController.getBank);
+router.post('/postbank', bankController.postbank);
+router.get('/getbank', bankController.getBank);
 
 // account Routes
-router.post("/postaccount", accountController.postaccount);
-router.get("/getaccount/:bankId", accountController.getsingleaccount);
-router.get("/getallaccount", accountController.getallaccount);
+router.post('/postaccount', accountController.postaccount);
+router.get('/getaccount/:bankId', accountController.getsingleaccount);
+router.get('/getallaccount', accountController.getallaccount);
 
 // tag Routes
-router.post("/create-tag", tagController.createTag);
-router.get("/get-tag", tagController.getAllTags);
-router.post("/update-tag/:id", tagController.updateTag);
-router.post("/delete-tag", tagController.deleteTag);
+router.post('/create-tag', tagController.createTag);
+router.get('/get-tag', tagController.getAllTags);
+router.patch('/update-tag/:id', tagController.updateTag);
+router.delete('/delete-tag/:id', tagController.deleteTag);
 
 module.exports = router;

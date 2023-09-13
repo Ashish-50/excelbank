@@ -1,0 +1,18 @@
+  {
+    "extends": [
+      "eslint:recommended"
+    ],
+    "parserOptions": {
+      "ecmaVersion": 2021,
+      "sourceType": "module"
+    },
+    "env": {
+      "es6": true,
+      "node": true
+    },
+      "rules": {
+        "prefer-const": "error",
+        "semi": ["error", "always"],
+        "no-console": ["error", { "allow": ["info", "warn", "error"] }]
+      }
+}
