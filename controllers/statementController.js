@@ -11,8 +11,10 @@ let statHash = new Map();
 
 const previousMonth = async (date1,bankName,accountNumber) => {
   const date = moment(date1)
+  console.log(date)
   const firstDayOfPreviousMonth = date.clone().subtract(1, 'months').startOf('month').unix();
   const lastDayOfPreviousMonth = date.clone().subtract(1, 'months').endOf('month').unix();
+  console.log(firstDayOfPreviousMonth,lastDayOfPreviousMonth)
   
    previousMonthdata = await Statement.find({
     date: {
@@ -28,6 +30,7 @@ if(previousMonthdata){
     statHash.set(item.description,item)
   })
 }
+console.log(previousMonthdata,statHash)
 }
 
 const processCSVFile = async (fileBuffer, bankName, accountNumber) => {
@@ -91,7 +94,7 @@ const uploadStatement = async (req, res) => {
           const transaction_amount =
             type === "DR" ? debitAmount : creditAmount;
           var dateObject = moment(data['Date'], 'DD-MM-YYYY');
-          var timestamp = dateObject.unix();
+          var timestamp = dateObject.unix();  
           var timestampmiliseconds = timestamp*1000;
           result.date = timestampmiliseconds;
           result.description = data["Narration"];
@@ -120,8 +123,8 @@ const uploadStatement = async (req, res) => {
         result.bank_name = bankName;
         result.account_number = accountNumber;
         return result;
-      })
-
+      });
+      console.table(finalData)
       let CSVInserted = await Statement.insertMany(finalData)
         res.status(200).json({ message: 'CSV file uploaded and data saved.' });
     } catch (error) {
@@ -186,20 +189,21 @@ const searchdate = async (req, res) => {
 const updateStatementfortag = async (req,res) => {
   try {
     const updatedBody = req.body;
-    const statementId  = req.params.statementId;
     const date = moment(updatedBody.date);
+    const account_number = updatedBody.account_number
     const formattedDate = date.format('DD-MM-YYYY');
-
     console.log('Formatted Date:', formattedDate);
     const datemil = moment(formattedDate, 'DD-MM-YYYY');
-
     const firstDayTimestamp = datemil.clone().startOf('month').valueOf();
-
     const lastDayTimestamp = datemil.clone().endOf('month').valueOf();
-
     const returndata = await Statement.updateMany({
-      $and:[{description:updatedBody.description},{date:{$gte:firstDayTimestamp,$lte:lastDayTimestamp},account_number:updatedBody.account_number}]
-    },{$set:{tag_name:updatedBody.tag_name}},{upsert:true})
+            description:updatedBody.description,
+            date:{$gte:firstDayTimestamp,$lte:lastDayTimestamp},
+            account_number:account_number
+          },
+          {$set:{tag_name:updatedBody.tag_name}},
+          {upsert:true},{multi:true}
+          )
     if(returndata.acknowledged == true){
       res.status(200).json({"message":"data updated "});
     }
@@ -208,8 +212,6 @@ const updateStatementfortag = async (req,res) => {
     res.status(500).json({error:error.message})
   }
 }
-
-
 
 const getAllStatements = async (req,res) => {
   try {
