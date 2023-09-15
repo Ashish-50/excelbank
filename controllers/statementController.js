@@ -91,7 +91,7 @@ const uploadStatement = async (req, res) => {
           result.description = data['Narration'];
           result.type = type;
           result.transaction_amount = transaction_amount;
-          result.cheque_no = data['Chq/Ref Number'] || data['ChqNumber'];
+          result.cheque_no = parseFloat(data['Chq/Ref Number']) || parseFloat(data['ChqNumber']);
           result.total_balance = data['Closing Balance'] || data['ClosingBalance'];
           result.transaction_id = null;
           result.txn_posted_date = null;
@@ -105,7 +105,7 @@ const uploadStatement = async (req, res) => {
           result.description = data['Description'];
           result.type = data['Cr/Dr'];
           result.transaction_amount = data['Transaction Amount(INR)'];
-          result.cheque_no = data['ChequeNo.'];
+          result.cheque_no = parseFloat(data['ChequeNo.']);
           result.total_balance = data['Available Balance(INR)'];
           result.transaction_id = data['Transaction ID'];
           result.txn_posted_date = data['Txn Posted Date'];
@@ -116,7 +116,7 @@ const uploadStatement = async (req, res) => {
         return result;
       });
       await Statement.insertMany(finalData);
-      previousMonthdata={};
+      previousMonthdata = {};
       statHash.clear();
       res.status(200).json({ message: 'CSV file uploaded and data saved.' });
     } catch (error) {
@@ -199,8 +199,8 @@ const updateStatementfortag = async (req, res) => {
     const datemil = moment(formattedDate, 'DD-MM-YYYY');
     const firstDayTimestamp = datemil.clone().startOf('month').valueOf();
     const lastDayTimestamp = datemil.clone().endOf('month').valueOf();
-    
-    console.info(formattedDate,firstDayTimestamp,lastDayTimestamp,'formattedDate');
+
+    console.info(formattedDate, firstDayTimestamp, lastDayTimestamp, 'formattedDate');
     const returndata = await Statement.updateMany(
       {
         description: updatedBody.description,
@@ -242,10 +242,58 @@ const getAllStatements = async (req, res) => {
   }
 };
 
+const statementByMonth = async (req, res) => {
+  try {
+    const { date, accountNumber, bankName } = req.body;
+    const page = req.query.page || 1;
+    const limit = req.query.limit || 100;
+    const offSet = (page - 1) * limit;
+    const actualDate = moment(date);
+    const formattedDate = actualDate.format('DD-MM-YYYY');
+    const datemil = moment(formattedDate, 'DD-MM-YYYY');
+    const firstDayTimestamp = datemil.clone().startOf('month').valueOf();
+    const lastDayTimestamp = datemil.clone().endOf('month').valueOf();
+
+    const count = await Statement.count({  date: {
+      $gte: firstDayTimestamp,
+      $lte: lastDayTimestamp,
+    },
+    account_number: accountNumber,
+    bank_name: bankName}).lean().exec();
+    const totalPages = Math.ceil(count / limit);
+    const getStatement = await Statement.aggregate([
+      {
+        $match: {
+          date: {
+            $gte: firstDayTimestamp,
+            $lte: lastDayTimestamp,
+          },
+          account_number: accountNumber,
+          bank_name: bankName,
+        },
+      },
+      { $skip: offSet },
+      { $limit: limit },
+    ]);
+    if (getStatement.length > 0) {
+      res.status(200).json({
+        hasNextPage: page < totalPages,
+        totalCount:count,
+        totalPage:totalPages,
+        statement: getStatement,
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
 module.exports = {
   uploadStatement,
   getStatement,
   searchdate,
   updateStatementfortag,
   getAllStatements,
+  statementByMonth,
 };

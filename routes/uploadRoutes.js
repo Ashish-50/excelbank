@@ -22,7 +22,7 @@ router.get('/statement/:accountno', statementController.getStatement);
 router.post('/search', statementController.searchdate);
 router.patch('/statement/:statementId', statementController.updateStatementfortag);
 router.get('/getAllStatments', statementController.getAllStatements);
-// router.get("/getall", statementController.getAll);
+router.post('/statementByMonth', statementController.statementByMonth);
 
 // bank Routes
 router.post('/postbank', bankController.postbank);
