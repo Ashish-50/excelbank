@@ -10,7 +10,6 @@ const postbank = async (req, res) => {
     });
     if (!savedBank) {
       return res.status(500).json({
-        code: 'Internal-Server-Error',
         error: 'Something went wrong while registering Bank detail',
       });
     }
@@ -47,7 +46,40 @@ const getBank = async (req, res) => {
   }
 };
 
+const updateBank = async(req,res) =>{
+  const id = req.params.id;
+  const data = req.body;
+  try {
+    const updateBank = await Bank.findByIdAndUpdate(id,data,{
+      new:true
+    });
+    if (!updateBank)
+      return res.status(500).json({ message: "Bank not found" });
+    res.status(200).json({ message: "Bank updated successfully", updateBank });
+  } catch (error) {
+    console.error("Error in updating bank",error);
+    res.status(400).json({ success: false }, error.message);
+  }
+};
+
+const deleteBank = async (req, res) => {
+  const { bankId } = req.params.id;
+  try {
+    const deletedBank = await Bank.findByIdAndDelete(bankId);
+    if (!deletedBank)
+      return res.status(404).json({ message: "Bank not found or something went wrong" });
+    res.status(200).json({ message: "Bank deleted successfully" });
+  } catch (err) {
+    console.error("Error Deleting bank:", err);
+    res.status(400).json({ success: false }, err.message);
+  }
+};
+
+
+
 module.exports = {
   postbank,
   getBank,
+  updateBank,
+  deleteBank
 };

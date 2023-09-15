@@ -116,6 +116,8 @@ const uploadStatement = async (req, res) => {
         return result;
       });
       await Statement.insertMany(finalData);
+      previousMonthdata={};
+      statHash.clear();
       res.status(200).json({ message: 'CSV file uploaded and data saved.' });
     } catch (error) {
       console.error('Error processing CSV file:', error);
@@ -197,6 +199,8 @@ const updateStatementfortag = async (req, res) => {
     const datemil = moment(formattedDate, 'DD-MM-YYYY');
     const firstDayTimestamp = datemil.clone().startOf('month').valueOf();
     const lastDayTimestamp = datemil.clone().endOf('month').valueOf();
+    
+    console.info(formattedDate,firstDayTimestamp,lastDayTimestamp,'formattedDate');
     const returndata = await Statement.updateMany(
       {
         description: updatedBody.description,

@@ -45,7 +45,7 @@ const updateTag = async (req, res) => {
 };
 
 const deleteTag = async (req, res) => {
-  const { tagId } = req.params.id;
+  const tagId= req.params.id;
   try {
     if (!tagId) {
       return res.status(404).json({ message: 'Tag ID is required' });
