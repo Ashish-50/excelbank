@@ -174,13 +174,14 @@ const getStatement = async (req, res) => {
 };
 
 const searchdate = async (req, res) => {
-  const startDate = req.query.startDate;
-  const endDate = req.query.endDate;
-
+  let startDate = req.query.startDate;
+  let endDate = req.query.endDate;
+  const startDatetimestamp = convertDateToTimeStamp(startDate);
+  const endDatetimestamp = convertDateToTimeStamp(endDate);
   const result = await Statement.find({
     date: {
-      $gte: startDate,
-      $lte: endDate,
+      $gte: startDatetimestamp,
+      $lte: endDatetimestamp,
     },
   });
   if (result) {
@@ -188,6 +189,12 @@ const searchdate = async (req, res) => {
     return;
   }
   res.status(400).json({ message: 'No data found' });
+};
+
+const convertDateToTimeStamp = (date) => {
+  const dateObject = moment(date, 'DD-MM-YYYY');
+  const timestamp = dateObject.unix();
+  return timestamp * 1000;
 };
 
 const updateStatementfortag = async (req, res) => {
@@ -254,12 +261,16 @@ const statementByMonth = async (req, res) => {
     const firstDayTimestamp = datemil.clone().startOf('month').valueOf();
     const lastDayTimestamp = datemil.clone().endOf('month').valueOf();
 
-    const count = await Statement.count({  date: {
-      $gte: firstDayTimestamp,
-      $lte: lastDayTimestamp,
-    },
-    account_number: accountNumber,
-    bank_name: bankName}).lean().exec();
+    const count = await Statement.count({
+      date: {
+        $gte: firstDayTimestamp,
+        $lte: lastDayTimestamp,
+      },
+      account_number: accountNumber,
+      bank_name: bankName,
+    })
+      .lean()
+      .exec();
     const totalPages = Math.ceil(count / limit);
     const getStatement = await Statement.aggregate([
       {
@@ -278,8 +289,8 @@ const statementByMonth = async (req, res) => {
     if (getStatement.length > 0) {
       res.status(200).json({
         hasNextPage: page < totalPages,
-        totalCount:count,
-        totalPage:totalPages,
+        totalCount: count,
+        totalPage: totalPages,
         statement: getStatement,
       });
     }

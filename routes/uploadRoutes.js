@@ -11,32 +11,32 @@ const storage = multer.memoryStorage();
 
 const upload = multer({ storage: storage });
 
-router.route('/uploadcsv').post(upload.single('file'), statementController.uploadStatement);
+router.route('/uploadcsv').post(upload.single('file'), statementController.uploadStatement); //ok
 
 // login Routes
-router.post('/register', userController.register);
-router.post('/login', userController.login);
+router.post('/register', userController.register); //ok
+router.post('/login', userController.login); //ok
 
 // statement Routes
-router.get('/statement/:accountno', statementController.getStatement);
-router.post('/search', statementController.searchdate);
-router.patch('/statement/:statementId', statementController.updateStatementfortag);
-router.get('/getAllStatments', statementController.getAllStatements);
-router.post('/statementByMonth', statementController.statementByMonth);
+router.get('/statement/:accountno', statementController.getStatement); //ok
+router.post('/search', statementController.searchdate); //ok
+router.patch('/statement/:statementId', statementController.updateStatementfortag); //ok
+router.get('/getAllStatments', statementController.getAllStatements); //ok
+router.post('/statementByMonth', statementController.statementByMonth); //not ok
 
 // bank Routes
-router.post('/postbank', bankController.postbank);
-router.get('/getbank', bankController.getBank);
+router.post('/postbank', bankController.postbank); //ok
+router.get('/getbank', bankController.getBank); //ok
 
 // account Routes
-router.post('/postaccount', accountController.postaccount);
-router.get('/getaccount/:bankId', accountController.getsingleaccount);
-router.get('/getallaccount', accountController.getallaccount);
+router.post('/postaccount', accountController.postaccount); //not ok
+router.get('/getaccount/:bankId', accountController.getsingleaccount); //not ok
+router.get('/getallaccount', accountController.getallaccount); //not ok
 
 // tag Routes
-router.post('/create-tag', tagController.createTag);
-router.get('/get-tag', tagController.getAllTags);
-router.patch('/update-tag/:id', tagController.updateTag);
-router.delete('/delete-tag/:id', tagController.deleteTag);
+router.post('/create-tag', tagController.createTag); //ok
+router.get('/get-tag', tagController.getAllTags); //ok
+router.patch('/update-tag/:id', tagController.updateTag); //ok
+router.delete('/delete-tag/:id', tagController.deleteTag); //ok
 
 module.exports = router;
