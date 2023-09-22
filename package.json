@@ -5,6 +5,7 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js",
     "dev": "NODE_ENV=development node app.js",
     "staging": "NODE_ENV=staging node app.js",
     "production": "NODE_ENV=production node app.js",
