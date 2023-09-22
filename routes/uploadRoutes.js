@@ -5,6 +5,8 @@ const bankController = require('../controllers/bankController');
 const accountController = require('../controllers/accountController');
 const userController = require('../controllers/userController');
 const tagController = require('../controllers/tagController');
+const typeController = require('../controllers/typeController');
+
 const multer = require('multer');
 
 const storage = multer.memoryStorage();
@@ -38,5 +40,11 @@ router.post('/create-tag', tagController.createTag);
 router.get('/get-tag', tagController.getAllTags);
 router.patch('/update-tag/:id', tagController.updateTag);
 router.delete('/delete-tag/:id', tagController.deleteTag);
+
+// type Routes
+router.post('/create-type', typeController.createType);
+router.get('/get-type', typeController.getAllType);
+router.patch('/update-type/:id', typeController.updateType);
+router.delete('/delete-type/:id', typeController.deleteType);
 
 module.exports = router;
