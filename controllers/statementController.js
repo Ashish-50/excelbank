@@ -241,7 +241,7 @@ const getAllStatements = async (req, res) => {
       query.account_number = accountNumber;
     }
 
-    const count = await Statement.count(query).lean().exec();
+    const count = await Statement.count(query).lean().exec()
 
     const totalPages = Math.ceil(count / limit);
 
