@@ -225,10 +225,35 @@ const getAllStatements = async (req, res) => {
     const page = req.query.page;
     const limit = req.query.limit;
     const offSet = (page - 1) * limit;
-    const count = await Statement.count().lean().exec();
+
+    let query = {};
+
+    if (req.query.selectedMonth) {
+      const selectedMonth = req.query.selectedMonth;
+      query.date = {
+        $gte: moment(selectedMonth, 'MM').startOf('month').valueOf(),
+        $lte: moment(selectedMonth, 'MM').endOf('month').valueOf(),
+      };
+    }
+
+    if (req.query.accountNumber) {
+      const accountNumber = req.query.accountNumber;
+      query.account_number = accountNumber;
+    }
+
+    const count = await Statement.count(query).lean().exec();
+
     const totalPages = Math.ceil(count / limit);
-    const getData = await Statement.find({}).populate('tag_name').skip(offSet).limit(limit).exec();
-    if (!getData) return res.status(404).json({ message: 'No Data found' });
+
+    const getData = await Statement.find(query)
+      .populate('tag_name')
+      .skip(offSet)
+      .limit(limit)
+      .exec();
+
+    if (!getData || getData.length === 0) {
+      return res.status(404).json({ message: 'No Data found' });
+    }
 
     res.status(200).json({
       count: count,
