@@ -47,6 +47,7 @@ router.post('/create-type', typeController.createType);
 router.get('/get-type', typeController.getAllType);
 router.patch('/update-type/:id', typeController.updateType);
 router.delete('/delete-type/:id', typeController.deleteType);
+router.patch('/updateforincome/:statementId', typeController.updateStatementforincome);
 
 // income Routes
 router.post('/create-income', incomeController.createIncome);

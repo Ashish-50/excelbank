@@ -35,6 +35,10 @@ const StatementSchemas = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'tag',
   },
+  income_name: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'income',
+  },
   is_confirm: {
     type: String,
     default: false,

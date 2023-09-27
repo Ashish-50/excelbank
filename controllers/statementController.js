@@ -96,6 +96,7 @@ const uploadStatement = async (req, res) => {
           result.transaction_id = null;
           result.txn_posted_date = null;
           result.tag_name = statHash.get(result.description)?.tag_name || null;
+          result.income_name = statHash.get(result.description)?.income_name || null;
         }
         if (req.body.bankName == 'ICICI') {
           const dateObject = moment(data['Value Date'], 'MM-DD-YYYY');
@@ -110,6 +111,7 @@ const uploadStatement = async (req, res) => {
           result.transaction_id = data['Transaction ID'];
           result.txn_posted_date = data['Txn Posted Date'];
           result.tag_name = statHash.get(result.description)?.tag_name || null;
+          result.income_name = statHash.get(result.description)?.income_name || null;
         }
         result.bank_name = bankName;
         result.account_number = accountNumber;

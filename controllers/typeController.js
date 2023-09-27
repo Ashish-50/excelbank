@@ -1,5 +1,6 @@
 const Type = require('../model/types');
 const Statement = require('../model/statement');
+const moment = require('moment');
 
 const createType = async (req, res) => {
   try {
@@ -61,4 +62,47 @@ const deleteType = async (req, res) => {
   }
 };
 
-module.exports = { createType, getAllType, updateType, deleteType };
+async function updateforincome(updatedBody) {
+  
+    // const updatedBody = updatedBody;
+    const date = moment(updatedBody.date);
+    const account_number = updatedBody.account_number;
+    const formattedDate = date.format('DD-MM-YYYY');
+    const datemil = moment(formattedDate, 'DD-MM-YYYY');
+    const firstDayTimestamp = datemil.clone().startOf('month').valueOf();
+    const lastDayTimestamp = datemil.clone().endOf('month').valueOf();
+    try {
+    // console.info(formattedDate, firstDayTimestamp, lastDayTimestamp, 'formattedDate');
+    const returndata = await Statement.updateMany(
+      {
+        description: updatedBody.description,
+        date: { $gte: firstDayTimestamp, $lte: lastDayTimestamp },
+        account_number: account_number,
+      },
+      { $set: { income_name: updatedBody.income_name } },
+      { upsert: true },
+      { multi: true },
+    );
+    if (returndata.acknowledged == true) {
+      return "Data Updated"
+    }
+  } catch (error) {
+    console.info("error", error)
+    return error
+
+  }
+}; 
+
+const updateStatementforincome = async (req, res) => {
+  try {
+    const updatedBody = req.body;
+    const UpdatedBody = await updateforincome(updatedBody)
+    console.log(UpdatedBody)
+    res.status(200).json({"message":UpdatedBody})
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports = { createType, getAllType, updateType, deleteType, updateStatementforincome };
