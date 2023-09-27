@@ -6,6 +6,7 @@ const accountController = require('../controllers/accountController');
 const userController = require('../controllers/userController');
 const tagController = require('../controllers/tagController');
 const typeController = require('../controllers/typeController');
+const incomeController = require('../controllers/incomeController');
 
 const multer = require('multer');
 
@@ -46,5 +47,12 @@ router.post('/create-type', typeController.createType);
 router.get('/get-type', typeController.getAllType);
 router.patch('/update-type/:id', typeController.updateType);
 router.delete('/delete-type/:id', typeController.deleteType);
+router.patch('/updateforincome/:statementId', typeController.updateStatementforincome);
+
+// income Routes
+router.post('/create-income', incomeController.createIncome);
+router.get('/get-income', incomeController.getAllIncome);
+router.patch('/update-income/:id', incomeController.updateIncome);
+router.delete('/delete-income/:id', incomeController.deleteIncome);
 
 module.exports = router;

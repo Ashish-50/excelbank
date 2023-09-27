@@ -96,6 +96,7 @@ const uploadStatement = async (req, res) => {
           result.transaction_id = null;
           result.txn_posted_date = null;
           result.tag_name = statHash.get(result.description)?.tag_name || null;
+          result.income_name = statHash.get(result.description)?.income_name || null;
         }
         if (req.body.bankName == 'ICICI') {
           const dateObject = moment(data['Value Date'], 'MM-DD-YYYY');
@@ -110,6 +111,7 @@ const uploadStatement = async (req, res) => {
           result.transaction_id = data['Transaction ID'];
           result.txn_posted_date = data['Txn Posted Date'];
           result.tag_name = statHash.get(result.description)?.tag_name || null;
+          result.income_name = statHash.get(result.description)?.income_name || null;
         }
         result.bank_name = bankName;
         result.account_number = accountNumber;
@@ -225,10 +227,35 @@ const getAllStatements = async (req, res) => {
     const page = req.query.page;
     const limit = req.query.limit;
     const offSet = (page - 1) * limit;
-    const count = await Statement.count().lean().exec();
+
+    const query = {};
+
+    if (req.query.selectedMonth) {
+      const selectedMonth = req.query.selectedMonth;
+      query.date = {
+        $gte: moment(selectedMonth, 'MM').startOf('month').valueOf(),
+        $lte: moment(selectedMonth, 'MM').endOf('month').valueOf(),
+      };
+    }
+
+    if (req.query.accountNumber) {
+      const accountNumber = req.query.accountNumber;
+      query.account_number = accountNumber;
+    }
+
+    const count = await Statement.count(query).lean().exec();
+
     const totalPages = Math.ceil(count / limit);
-    const getData = await Statement.find({}).populate('tag_name').skip(offSet).limit(limit).exec();
-    if (!getData) return res.status(404).json({ message: 'No Data found' });
+
+    const getData = await Statement.find(query)
+      .populate('tag_name')
+      .skip(offSet)
+      .limit(limit)
+      .exec();
+
+    if (!getData || getData.length === 0) {
+      return res.status(404).json({ message: 'No Data found' });
+    }
 
     res.status(200).json({
       count: count,
